@@ -19,6 +19,7 @@ from native_devtree import configure_native_text_state
 from build_macos26_storage import PROTOCOL_CHARACTERISTICS
 from native_log_file import CONTRACT as LOG_CONTRACT, BLOCK as LOG_BLOCK, decode as decode_log_file
 from recovery_ui_evidence import qualify_language_selector
+from boot_template import os_version_from_backup
 
 
 def qualify(build, observation, bootstrap, default_off, installed, plan, root_build, *, with_isc=False):
@@ -268,6 +269,8 @@ def main():
     parser.add_argument('--root-volume-uuid', type=uuid.UUID, required=True)
     parser.add_argument('--firmware-build', type=Path, required=True)
     parser.add_argument('--backup-dir', type=Path, required=True)
+    parser.add_argument('--linux-boot-template', action='store_true',
+                        help='use the verified current-slot Linux v0 backup, preserving its OS version field')
     parser.add_argument('--output', type=Path, required=True)
     parser.add_argument('--development-no-ignition', action='store_true')
     parser.add_argument('--isc-overlay', action='store_true',
@@ -325,14 +328,11 @@ def main():
     payload = base_data[4096:4096 + payload_size]
     if len(payload) != payload_size:
         raise ValueError('firmware payload is truncated')
-    with (args.backup_dir / 'boot_a.img').open('rb') as stream:
-        boot = stream.read(4096)
-    if boot[:8] != b'ANDROID!' or struct.unpack_from('<I', boot, 40)[0] != 4:
-        raise ValueError('requires backed-up slot A OS metadata')
-    os_version = struct.unpack_from('<I', boot, 16)[0]
+    os_version = os_version_from_backup(args.backup_dir / 'boot_a.img',
+                                       linux_v0=args.linux_boot_template)
     geometry = tomllib.loads((ROOT / 'uefi-sheng/Resources/Configs/sheng.toml').read_text())['boot_image']
-    if not os_version or geometry['header_version'] != 0:
-        raise ValueError('requires the qualified v0 transport and stock version field')
+    if geometry['header_version'] != 0:
+        raise ValueError('requires the qualified v0 transport')
     boot_args = NATIVE_BOOT_ARGS + ' -sheng-early-console -sheng-capture-handoff native-ufs-root=1 native-ufs-diagnostics=1'
     if args.development_no_ignition:
         qualify_development_dyld(args.kernel_build, args.dyld_observation, identity, args.root_volume_uuid)
@@ -402,6 +402,8 @@ def main():
             record = dict(container_sha256=hashlib.sha256(data).hexdigest(), container_bytes=len(data),
                 kernel=identity, purpose='Native EL1 UFS root experiment; hardware execution unqualified',
                 boot_args=boot_args, temporary_ram_boot=True, partition_images_written=False,
+                linux_boot_template=args.linux_boot_template,
+                template_os_version=os_version,
                 root_media_preinstalled=True, root_partition_guid=partition['root_unique_guid'],
                 root_image_sha256=media['sha256'], root_volume_uuid=str(args.root_volume_uuid),
                 owned_memory_bytes=0xc0000000, native_panic_region_bytes=524288,
