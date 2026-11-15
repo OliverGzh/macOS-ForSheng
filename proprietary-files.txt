@@ -1,0 +1,13 @@
+# Firmware paths and SHA-256 digests for scripts/extract-files.py.
+# Files are written under .cache/firmware/.
+# Format: path|sha256. Prefix a path with - for an optional file.
+@fetch https://raw.githubusercontent.com/ianchb/sheng-firmware/2c1e2729a085c7f0470c855d236e49455c4601f0/
+
+# Touch
+novatek/novatek_nt36532_n81a_fw_csot.bin|750508bb4d75472d35ce5852ec8470d66afa6bf4a4274c136b3759034260ef59
+
+# Keyboard
+nanosic/MCU_Upgrade.bin|9eb7213603474d926d3af1124d3c14d63cbfc58ea2f7f7d9fedc088093fd63c5
+
+# Video
+qcom/sm8550/sheng/vpu30_4v.mbn|56c41b7b28694d261af67db40fa64a6f7076709171876fcc3abf0ce411506edb
