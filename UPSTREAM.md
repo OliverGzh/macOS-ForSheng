@@ -34,6 +34,7 @@ Full image construction also needs the original macOS Data seed, firmware inputs
 
 ## Evidence and limits
 
+- Complete-import integrity and actual upstream macOS configuration resolution passed locally and in [the hosted import check](https://github.com/OliverGzh/macOS-ForSheng/actions/runs/43683738067): 18 components and 146 ordered patches. This check does not compile a kernel or run on a tablet.
 - [PR #99](https://github.com/UniXNU/UniXNU-sheng/pull/99) reports a complete Intel macOS host image build, explicitly without device boot testing.
 - Upstream hardware observations remain in porting.toml with their original revisions and limits; they are not tests of this import.
 - [PR #97](https://github.com/UniXNU/UniXNU-sheng/pull/97) describes a Data persistence argument mismatch. The imported board arguments are unchanged, so that known issue must be addressed before any future device validation.
