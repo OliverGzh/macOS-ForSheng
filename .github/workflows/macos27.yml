@@ -1,0 +1,77 @@
+name: macOS 27.3 upstream integration
+
+on:
+  pull_request:
+    paths:
+      - 'config/macos27-upstream.json'
+      - 'scripts/macos27.py'
+      - 'tests/test_macos27.py'
+      - '.github/workflows/macos27.yml'
+  workflow_dispatch:
+    inputs:
+      mode:
+        description: Host configuration checks or a complete macOS kernel build (no device operation)
+        type: choice
+        options: [check, kernel]
+        default: check
+
+permissions:
+  contents: read
+
+concurrency:
+  group: macos27-${{ github.ref }}-${{ inputs.mode || 'check' }}
+  cancel-in-progress: true
+
+jobs:
+  configuration:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.13'
+      - run: python3 -m unittest discover -s tests -p test_macos27.py -v
+      - run: python3 scripts/macos27.py prepare
+      - run: python3 scripts/macos27.py check
+      - run: python3 scripts/macos27.py host-tests
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: macos27-configuration
+          path: |
+            out/macos27/check.json
+            out/macos27/host-tests.json
+          retention-days: 7
+
+  kernel:
+    if: github.event_name == 'pull_request' || inputs.mode == 'kernel'
+    needs: configuration
+    runs-on: macos-26
+    timeout-minutes: 180
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.13'
+      - name: Install upstream build tools
+        run: brew install dtc llvm lld cmake ninja unifdef mtools blacktop/tap/ipsw
+      - name: Record the actual toolchain
+        run: |
+          mkdir -p out/macos27
+          { xcodebuild -version; xcrun clang --version; xcrun --sdk macosx --show-sdk-version; } > out/macos27/toolchain.txt
+      - name: Compile and prelink the paired upstream kernel
+        run: python3 scripts/macos27.py kernel
+        env:
+          GITHUB_TOKEN: ${{ github.token }}
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: macos27-kernel-diagnostics
+          path: |
+            out/macos27/check.json
+            out/macos27/build-result.json
+            out/macos27/toolchain.txt
+            out/macos27/build/sheng/macos-27.3-26C5035r/sheng_macos/kernel/kernel.macho
+            out/macos27/build/sheng/macos-27.3-26C5035r/sheng_macos/logs/
+          retention-days: 7
