@@ -8,7 +8,7 @@
 > **请勿将本项目的镜像或构建产物刷入设备，也不要照搬文档中的实验分区操作。相关操作可能导致无法启动或数据丢失。**
 
 macOS-ForSheng 是面向小米平板 6S Pro（sheng / SM8550）的原生 macOS 移植项目。
-目标系统为 macOS 26.5 / 25F71，使用配套 XNU 12377.121.6 ARM64E、恢复系统和用户空间。
-项目通过 UEFI、DarwinBoot 和自构建 SHENG EL1 内核加载系统，硬件适配参考 UniXNU，组件与显示实现参考 Snapintosh 和 DroidVM。
+当前开发路线迁移到 **macOS 27.3 / 26C5035r**，通过固定版本的 UniXNU、SM8550 profile 和 sheng 板级实现接入 Adreno/Metal、显示、触控、UFS、Wi-Fi、USB、音频及电源构建链。
+新入口、已发现的缺口、上游证据和构建方式见 [macOS 27.3 开发路线](docs/macos27.md)。本仓库这次集成尚未完成真机验证。
 
-项目当前仍处于实验阶段。已验证功能、当前阻断和实机测试结果见[移植状态](docs/status.md)。
+macOS 26.5 / 25F71 的自构建 SHENG Recovery 路线保留供对照；历史验证与阻断见[移植状态](docs/status.md)，其产物不能与 27.3 混用。

@@ -48,6 +48,13 @@ vendored into this repository except for the QR encoder listed below.
 Apple restore images, KDKs, reconstructed private ABI headers, firmware and
 device backups are not included in this repository.
 
+The macOS 27.3 route uses separately fetched UniXNU, UniXNU-sheng,
+UniXNU-sm8550-common and uefi-sheng checkouts at the exact revisions in
+`config/macos27-upstream.json`. Their drivers and original license notices stay
+in those checkouts. The project-owned build adapter applies only the documented
+macOS Data-argument compatibility and default-off Bluetooth policy; it does not
+relicense the upstream kernel, firmware, graphics or Linux-derived components.
+
 `config/sheng_defconfig` 原样来自固定提交的 UniXNU/UniXNU-sheng，遵循其 BSD-2-Clause-Patent 许可证；来源与文件哈希见 `config/sheng-baseline.json`。
 
 - Droid-VM/macOS-DroidVM: the optional QEMU input companion adapts DroidVMInput.cpp
